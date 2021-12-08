@@ -17,6 +17,7 @@ import (
 	"github.com/decred/vspd/rpc"
 	"github.com/decred/vspd/version"
 	"github.com/decred/vspd/webapi"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // maxVoteChangeRecords defines how many vote change records will be stored for
@@ -35,6 +36,13 @@ func main() {
 	if err := run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		os.Exit(1)
 	}
+}
+
+//Implementing password hash to increase security for AdminPass
+//hashPassword hash cfg.AdminPass and returns the hash.
+func hashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 15)
+    return string(bytes), err
 }
 
 // run is the main startup and teardown logic performed by the main package. It
@@ -74,6 +82,27 @@ func run(ctx context.Context) error {
 	}
 	defer db.Close()
 
+	//Check if adminPass Hash is set in db.
+	hash, err := db.GetAdminHash()
+
+	//Ensure adminpass option is set
+	if cfg.AdminPass == "" &&  err != nil {
+		return errors.New("the adminpass option is not set")
+	}
+
+	if hash != nil && cfg.AdminPass != "" {
+	//Hash the cfg.AdminPass value
+	cfg.AdminPass, err = hashPassword(cfg.AdminPass)
+
+	if err != nil {
+		return fmt.Errorf("Hashing AdminPass Failed: %w", err)
+	}
+
+	//if adminpass is set, overwrite the saved adminpass hash in database.
+	db.UpdateAdminPass(cfg.AdminPass)
+	
+	}
+	
 	// Create RPC client for local dcrd instance (used for broadcasting and
 	// checking the status of fee transactions).
 	dcrd := rpc.SetupDcrd(cfg.DcrdUser, cfg.DcrdPass, cfg.DcrdHost, cfg.dcrdCert, nil)

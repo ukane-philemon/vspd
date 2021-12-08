@@ -22,4 +22,5 @@ require (
 	github.com/jrick/logrotate v1.0.0
 	github.com/jrick/wsrpc/v2 v2.3.4
 	go.etcd.io/bbolt v1.3.6
+	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e // indirect
 )

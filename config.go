@@ -269,7 +269,7 @@ func loadConfig() (*config, error) {
 		}
 		return nil, err
 	}
-
+	
 	// Set the active network.
 	minRequired := 1
 	switch cfg.Network {
@@ -300,11 +300,6 @@ func loadConfig() (*config, error) {
 	// Ensure the support email address is set.
 	if cfg.SupportEmail == "" {
 		return nil, errors.New("the supportemail option is not set")
-	}
-
-	// Ensure the administrator password is set.
-	if cfg.AdminPass == "" {
-		return nil, errors.New("the adminpass option is not set")
 	}
 
 	// Ensure the dcrd RPC username is set.

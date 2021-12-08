@@ -11,6 +11,7 @@ import (
 	"github.com/decred/vspd/rpc"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // WalletStatus describes the current status of a single voting wallet. This is
@@ -197,12 +198,24 @@ func ticketSearch(c *gin.Context) {
 	})
 }
 
+//checkPasswordHash compare hash value of given AdminPass with AdminPass hash.
+func CheckPasswordHash(hash []byte, password string) bool {
+    err := bcrypt.CompareHashAndPassword(hash, []byte(password))
+    return err == nil
+}
+
 // adminLogin is the handler for "POST /admin". If a valid password is provided,
 // the current session will be authenticated as an admin.
 func adminLogin(c *gin.Context) {
 	password := c.PostForm("password")
-
-	if password != cfg.AdminPass {
+	hashedPass, err := db.GetAdminHash()
+	if err != nil {
+		log.Warnf("Not able to get Admin Hash: %w", err)
+	}
+	
+	ok := CheckPasswordHash(hashedPass, password)
+	
+	if !ok {
 		log.Warnf("Failed login attempt from %s", c.ClientIP())
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{
 			"WebApiCache":       getCache(),

@@ -9,6 +9,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,6 +53,8 @@ var (
 	lastAddressIndexK = []byte("lastaddressindex")
 	// altSignAddrBktK stores alternate signing addresses.
 	altSignAddrBktK = []byte("altsigbkt")
+	//AdminPassHash is the hashed form of the AdminPass
+	adminPassHashK = []byte("adminPassHash")
 )
 
 const (
@@ -456,4 +459,28 @@ func (vdb *VspDatabase) CheckIntegrity(ctx context.Context, params *chaincfg.Par
 	log.Infof("Added missing purchase height to %d tickets", len(missing))
 
 	return nil
+}
+
+func (vdb *VspDatabase) UpdateAdminPass(adminPassHash string) error {
+return vdb.db.Update(func(tx *bolt.Tx) error {
+		vspBkt := tx.Bucket(vspBktK)
+
+		// Add AdminPassHash to database.
+return vspBkt.Put(adminPassHashK, []byte(adminPassHash))
+	})
+}
+
+func (vdb *VspDatabase) GetAdminHash() ([]byte, error) {
+	var adminPassHash []byte
+	err := vdb.db.View(func(tx *bolt.Tx) error {
+		vspBkt := tx.Bucket(vspBktK)
+
+		adminPassHash = vspBkt.Get(adminPassHashK)
+		if adminPassHash == nil {
+			return errors.New("AdminPassHash has not been set")
+		}
+		return nil
+	})
+
+	return adminPassHash, err
 }
