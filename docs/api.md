@@ -9,7 +9,7 @@
   For example:
 
   ```json
-  {"code": 9, "message":"invalid vote choices"}
+  {"code": 400, "message":"invalid vote choices"}
   ```
 
   A full list of error codes can be looked up in

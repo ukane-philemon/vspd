@@ -7,7 +7,6 @@ package webapi
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/decred/dcrd/blockchain/v4"
@@ -236,12 +235,7 @@ func payFee(c *gin.Context) {
 
 			ticket.FeeTxStatus = database.FeeError
 
-			if strings.Contains(err.Error(),
-				"references outputs of unknown or fully-spent transaction") {
-				sendError(errCannotBroadcastFeeUnknownOutputs, c)
-			} else {
-				sendError(errCannotBroadcastFee, c)
-			}
+			sendError(errCannotBroadcastFee, c)
 
 			err = db.UpdateTicket(ticket)
 			if err != nil {

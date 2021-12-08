@@ -7,7 +7,6 @@ package webapi
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"sync"
 	"time"
 
@@ -80,7 +79,8 @@ func updateCache(ctx context.Context, db *database.VspDatabase,
 	}
 
 	if bestBlock.PoolSize == 0 {
-		return errors.New("dcr node reports a network ticket pool size of zero")
+		return apiError(errZeroNetworkTicketPoolSize, "dcr node reports a network ticket pool size of zero")
+
 	}
 
 	cacheMtx.Lock()

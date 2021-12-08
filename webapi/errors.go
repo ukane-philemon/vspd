@@ -1,118 +1,126 @@
-// Copyright (c) 2020 The Decred developers
+// Copyright (c) 2021 The Decred developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
 package webapi
 
-import "net/http"
-
-type apiError int
-
-const (
-	errBadRequest apiError = iota
-	errInternalError
-	errVspClosed
-	errFeeAlreadyReceived
-	errInvalidFeeTx
-	errFeeTooSmall
-	errUnknownTicket
-	errTicketCannotVote
-	errFeeExpired
-	errInvalidVoteChoices
-	errBadSignature
-	errInvalidPrivKey
-	errFeeNotReceived
-	errInvalidTicket
-	errCannotBroadcastTicket
-	errCannotBroadcastFee
-	errCannotBroadcastFeeUnknownOutputs
-	errInvalidTimestamp
+import (
+	"net/http"
+	"strconv"
 )
 
-// httpStatus maps application error codes to HTTP status codes.
-func (e apiError) httpStatus() int {
+type errorKind string
+
+const (
+	errBadRequest                       = errorKind("errBadRequest")
+	errInternalError                    = errorKind("errInternalError")
+	errVspClosed                        = errorKind("errVspClosed")
+	errFeeAlreadyReceived               = errorKind("errFeeAlreadyReceived")
+	errInvalidFeeTx                     = errorKind("errInvalidFeeTx")
+	errFeeTooSmall                      = errorKind("errFeeTooSmall")
+	errUnknownTicket                    = errorKind("errUnknownTicket")
+	errTicketCannotVote                 = errorKind("errTicketCannotVote")
+	errFeeExpired                       = errorKind("errFeeExpired")
+	errInvalidVoteChoices               = errorKind("errInvalidVoteChoices")
+	errBadSignature                     = errorKind("errBadSignature")
+	errInvalidPrivKey                   = errorKind("errInvalidPrivKey")
+	errFeeNotReceived                   = errorKind("errFeeNotReceived")
+	errInvalidTicket                    = errorKind("errInvalidTicket")
+	errCannotBroadcastTicket            = errorKind("errCannotBroadcastTicket")
+	errCannotBroadcastFee               = errorKind("errCannotBroadcastFee")
+	errCannotBroadcastFeeUnknownOutputs = errorKind("errCannotBroadcastFeeUnknownOutputs")
+	errInvalidTimestamp                 = errorKind("errInvalidTmestamp")
+
+	errNotPublicKey               = errorKind("errNotPublicKey")
+	errMultipleInvalidChildGenKey = errorKind("errMultipleInvalidChildGenKey")
+	errZeroNetworkTicketPoolSize  = errorKind("errZeroNetworkTicketPoolSize")
+	errNoVspClientSignature       = errorKind("errNoVspClientSignature")
+	errInvalidTx                  = errorKind("errInvalidTx")
+)
+
+var defaultErr = map[errorKind]string{
+	errBadRequest:                       "bad request",
+	errInternalError:                    "internal error",
+	errVspClosed:                        "vsp is closed",
+	errFeeAlreadyReceived:               "fee tx already received for ticket",
+	errInvalidFeeTx:                     "invalid fee tx",
+	errFeeTooSmall:                      "fee too small",
+	errUnknownTicket:                    "unknown ticket",
+	errTicketCannotVote:                 "ticket not eligible to vote",
+	errFeeExpired:                       "fee has expired",
+	errInvalidVoteChoices:               "invalid vote choices",
+	errBadSignature:                     "bad request signature",
+	errInvalidPrivKey:                   "invalid private key",
+	errFeeNotReceived:                   "no fee tx received for ticket",
+	errInvalidTicket:                    "not a valid ticket tx",
+	errCannotBroadcastTicket:            "ticket transaction could not be broadcast",
+	errCannotBroadcastFee:               "fee transaction could not be broadcast",
+	errCannotBroadcastFeeUnknownOutputs: "fee transaction could not be broadcast due to unknown outputs",
+	errInvalidTimestamp:                 "old or reused timestamp",
+}
+
+func (e errorKind) Is(target error) bool {
+	return target.Error() == defaultErr[e]
+}
+
+// Error maps application errorKind to HTTP status codes.
+func (e errorKind) Error() string {
 	switch e {
 	case errBadRequest:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errInternalError:
-		return http.StatusInternalServerError
+		return strconv.Itoa(http.StatusInternalServerError)
 	case errVspClosed:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errFeeAlreadyReceived:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errInvalidFeeTx:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errFeeTooSmall:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errUnknownTicket:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errTicketCannotVote:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errFeeExpired:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errInvalidVoteChoices:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errBadSignature:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errInvalidPrivKey:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errFeeNotReceived:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errInvalidTicket:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	case errCannotBroadcastTicket:
-		return http.StatusInternalServerError
+		return strconv.Itoa(http.StatusInternalServerError)
 	case errCannotBroadcastFee:
-		return http.StatusInternalServerError
+		return strconv.Itoa(http.StatusInternalServerError)
 	case errCannotBroadcastFeeUnknownOutputs:
-		return http.StatusPreconditionRequired
+		return strconv.Itoa(http.StatusPreconditionRequired)
 	case errInvalidTimestamp:
-		return http.StatusBadRequest
+		return strconv.Itoa(http.StatusBadRequest)
 	default:
-		return http.StatusInternalServerError
+		return strconv.Itoa(http.StatusInternalServerError)
 	}
 }
 
-// defaultMessage returns a descriptive error string for a given error code.
-func (e apiError) defaultMessage() string {
-	switch e {
-	case errBadRequest:
-		return "bad request"
-	case errInternalError:
-		return "internal error"
-	case errVspClosed:
-		return "vsp is closed"
-	case errFeeAlreadyReceived:
-		return "fee tx already received for ticket"
-	case errInvalidFeeTx:
-		return "invalid fee tx"
-	case errFeeTooSmall:
-		return "fee too small"
-	case errUnknownTicket:
-		return "unknown ticket"
-	case errTicketCannotVote:
-		return "ticket not eligible to vote"
-	case errFeeExpired:
-		return "fee has expired"
-	case errInvalidVoteChoices:
-		return "invalid vote choices"
-	case errBadSignature:
-		return "bad request signature"
-	case errInvalidPrivKey:
-		return "invalid private key"
-	case errFeeNotReceived:
-		return "no fee tx received for ticket"
-	case errInvalidTicket:
-		return "not a valid ticket tx"
-	case errCannotBroadcastTicket:
-		return "ticket transaction could not be broadcast"
-	case errCannotBroadcastFee:
-		return "fee transaction could not be broadcast"
-	case errCannotBroadcastFeeUnknownOutputs:
-		return "fee transaction could not be broadcast due to unknown outputs"
-	case errInvalidTimestamp:
-		return "old or reused timestamp"
-	default:
-		return "unknown error"
-	}
+type ApiError struct {
+	err         error
+	description string
+}
+
+func (e ApiError) Unwrap() error {
+	return e.err
+}
+
+func apiError(e errorKind, desc string) ApiError {
+	return ApiError{err: e, description: desc}
+}
+
+// Error satisfies the error interface and prints human-readable errors for a given ErrorKind
+func (e ApiError) Error() string {
+	return e.description
 }

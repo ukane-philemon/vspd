@@ -25,7 +25,7 @@ func newAddressGenerator(xPub string, netParams *chaincfg.Params, lastUsedIdx ui
 	}
 
 	if xPubKey.IsPrivate() {
-		return nil, errors.New("not a public key")
+		return nil, apiError(errNotPublicKey, "not a public key")
 	}
 
 	// Derive the extended key for the external chain.
@@ -62,7 +62,7 @@ func (m *addressGenerator) NextAddress() (string, uint32, error) {
 				// If this happens 3 times, something is seriously wrong, so
 				// return an error.
 				if invalidChildren > 2 {
-					return "", 0, errors.New("multiple invalid children generated for key")
+					return "", 0, apiError(errMultipleInvalidChildGenKey, "multiple invalid children generated for key")
 				}
 				continue
 			}

@@ -14,6 +14,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -284,18 +285,18 @@ func sendJSONResponse(resp interface{}, c *gin.Context) (string, string) {
 
 // sendError sends an error response to the client using the default error
 // message.
-func sendError(e apiError, c *gin.Context) {
-	msg := e.defaultMessage()
+func sendError(e errorKind, c *gin.Context) {
+	msg := defaultErr[e]
 	sendErrorWithMsg(msg, e, c)
 }
 
 // sendErrorWithMsg sends an error response to the client using the provided
 // error message.
-func sendErrorWithMsg(msg string, e apiError, c *gin.Context) {
-	status := e.httpStatus()
+func sendErrorWithMsg(msg string, e errorKind, c *gin.Context) {
+	status, err := strconv.Atoi(e.Error())
 
 	resp := gin.H{
-		"code":    int(e),
+		"code":    status,
 		"message": msg,
 	}
 

@@ -6,7 +6,6 @@ package webapi
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 
 	"github.com/decred/dcrd/blockchain/stake/v4"
@@ -56,7 +55,7 @@ func validateSignature(reqBytes []byte, commitmentAddress string, c *gin.Context
 	// Ensure a signature is provided.
 	signature := c.GetHeader("VSP-Client-Signature")
 	if signature == "" {
-		return errors.New("no VSP-Client-Signature header")
+		return apiError(errNoVspClientSignature, "no VSP-Client-Signature header")
 	}
 
 	err := dcrutil.VerifyMessage(commitmentAddress, signature, string(reqBytes), cfg.NetParams)
@@ -80,10 +79,11 @@ func decodeTransaction(txHex string) (*wire.MsgTx, error) {
 
 func isValidTicket(tx *wire.MsgTx) error {
 	if !stake.IsSStx(tx) {
-		return errors.New("invalid transaction - not sstx")
+		return apiError(errInvalidTx, "invalid transaction - not sstx")
 	}
 	if len(tx.TxOut) != 3 {
-		return fmt.Errorf("invalid transaction - expected 3 outputs, got %d", len(tx.TxOut))
+		msg := fmt.Sprintf("invalid transaction - expected 3 outputs, got %d", len(tx.TxOut))
+		return apiError(errInvalidTx, msg)
 	}
 
 	return nil
