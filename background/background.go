@@ -223,6 +223,7 @@ func blockConnected() {
 				// Set consensus vote choices on voting wallets.
 				for agenda, choice := range ticket.VoteChoices {
 					err = walletClient.SetVoteChoice(agenda, choice, ticket.Hash)
+
 					if err != nil {
 						if strings.Contains(err.Error(), "no agenda with ID") {
 							log.Warnf("%s: Removing invalid agenda from ticket vote choices (ticketHash=%s, agenda=%s)",

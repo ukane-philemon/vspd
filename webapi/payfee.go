@@ -234,7 +234,6 @@ func payFee(c *gin.Context) {
 				funcName, ticket.Hash, err)
 
 			ticket.FeeTxStatus = database.FeeError
-
 			sendError(errCannotBroadcastFee, c)
 
 			err = db.UpdateTicket(ticket)
