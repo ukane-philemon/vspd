@@ -269,7 +269,7 @@ func loadConfig() (*config, error) {
 		}
 		return nil, err
 	}
-	
+
 	// Set the active network.
 	minRequired := 1
 	switch cfg.Network {

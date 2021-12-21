@@ -1,4 +1,4 @@
-// Copyright (c) 2020 The Decred developers
+// Copyright (c) 2021 The Decred developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -41,8 +41,8 @@ func main() {
 //Implementing password hash to increase security for AdminPass
 //hashPassword hash cfg.AdminPass and returns the hash.
 func hashPassword(password string) (string, error) {
-    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 15)
-    return string(bytes), err
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 15)
+	return string(bytes), err
 }
 
 // run is the main startup and teardown logic performed by the main package. It
@@ -86,23 +86,27 @@ func run(ctx context.Context) error {
 	hash, err := db.GetAdminHash()
 
 	//Ensure adminpass option is set
-	if cfg.AdminPass == "" &&  err != nil {
-		return errors.New("the adminpass option is not set")
+	if cfg.AdminPass == "" && err != nil {
+		log.Error("Config error: the adminpass option is not set")
+		return err
 	}
 
-	if hash != nil && cfg.AdminPass != "" {
-	//Hash the cfg.AdminPass value
-	cfg.AdminPass, err = hashPassword(cfg.AdminPass)
+	if cfg.AdminPass != "" {
+		//Hash the cfg.AdminPass value
+		cfg.AdminPass, err = hashPassword(cfg.AdminPass)
 
-	if err != nil {
-		return fmt.Errorf("Hashing AdminPass Failed: %w", err)
+		if err != nil {
+			log.Errorf("Hashing AdminPass Failed: %v", err)
+			return err
+		}
+
+		//if adminpass is set, overwrite the saved adminpass hash in database.
+		db.UpdateAdminPass(cfg.AdminPass)
+
+	} else {
+		cfg.AdminPass = string(hash)
 	}
 
-	//if adminpass is set, overwrite the saved adminpass hash in database.
-	db.UpdateAdminPass(cfg.AdminPass)
-	
-	}
-	
 	// Create RPC client for local dcrd instance (used for broadcasting and
 	// checking the status of fee transactions).
 	dcrd := rpc.SetupDcrd(cfg.DcrdUser, cfg.DcrdPass, cfg.DcrdHost, cfg.dcrdCert, nil)

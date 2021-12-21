@@ -202,8 +202,8 @@ func ticketSearch(c *gin.Context) {
 func CheckPasswordHash(hash []byte, password string) bool {
     err := bcrypt.CompareHashAndPassword(hash, []byte(password))
     return err == nil
-}
 
+}
 // adminLogin is the handler for "POST /admin". If a valid password is provided,
 // the current session will be authenticated as an admin.
 func adminLogin(c *gin.Context) {
@@ -214,7 +214,7 @@ func adminLogin(c *gin.Context) {
 	}
 	
 	ok := CheckPasswordHash(hashedPass, password)
-	
+
 	if !ok {
 		log.Warnf("Failed login attempt from %s", c.ClientIP())
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{

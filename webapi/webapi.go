@@ -255,7 +255,7 @@ func router(debugMode bool, cookieSecret []byte, dcrd rpc.DcrdConnect, wallets r
 	basic := router.Group("/admin").Use(
 		withDcrdClient(dcrd), withWalletClients(wallets), gin.BasicAuth(gin.Accounts{
 			"admin": cfg.AdminPass,
-		}),
+		}), 
 	)
 	basic.GET("/status", statusJSON)
 
