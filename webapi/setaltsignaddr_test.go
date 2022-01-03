@@ -27,6 +27,8 @@ import (
 )
 
 const (
+	// Charset is a list of all req/response characters.
+	charset = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	// hexCharset is a list of all valid hexadecimal characters.
 	hexCharset = "1234567890abcdef"
 	// sigCharset is a list of all valid request/response signature characters
@@ -194,11 +196,11 @@ func TestSetAltSignAddress(t *testing.T) {
 		}
 
 		if test.isExistingAltSignAddr {
-			data := &database.AltSignAddrData{
+			data := database.AltSignAddrData{
 				AltSignAddr: test.addr,
-				Req:         b,
+				Req:         string(b),
 				ReqSig:      reqSig,
-				Resp:        randBytes(1000),
+				Resp:        randString(96, charset),
 				RespSig:     randString(96, sigCharset),
 			}
 			if err := db.InsertAltSignAddr(ticketHash, data); err != nil {
@@ -250,13 +252,13 @@ func TestSetAltSignAddress(t *testing.T) {
 		}
 
 		if test.wantCode != http.StatusOK && !test.isExistingAltSignAddr {
-			if altsig != nil {
+			if altsig != (database.AltSignAddrData{}) {
 				t.Fatalf("%q: expected no alt sign addr saved for errored state", test.name)
 			}
 			continue
 		}
 
-		if !bytes.Equal(b, altsig.Req) || altsig.ReqSig != reqSig {
+		if !bytes.Equal(b, []byte(altsig.Req)) || altsig.ReqSig != reqSig {
 			t.Fatalf("%q: expected alt sign addr data different than actual", test.name)
 		}
 	}

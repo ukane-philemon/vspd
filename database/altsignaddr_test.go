@@ -9,18 +9,18 @@ import (
 	"testing"
 )
 
-func exampleAltSignAddrData() *AltSignAddrData {
-	return &AltSignAddrData{
+func exampleAltSignAddrData() AltSignAddrData {
+	return AltSignAddrData{
 		AltSignAddr: randString(35, addrCharset),
-		Req:         randBytes(1000),
+		Req:         randString(96, addrCharset),
 		ReqSig:      randString(96, sigCharset),
-		Resp:        randBytes(1000),
+		Resp:        randString(96, addrCharset),
 		RespSig:     randString(96, sigCharset),
 	}
 }
 
 // ensureData will confirm that the provided data exists in the database.
-func ensureData(t *testing.T, ticketHash string, wantData *AltSignAddrData) {
+func ensureData(t *testing.T, ticketHash string, wantData AltSignAddrData) {
 	t.Helper()
 
 	data, err := db.AltSignAddrData(ticketHash)
@@ -40,7 +40,7 @@ func testAltSignAddrData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error fetching alt sign address data: %v", err)
 	}
-	if h != nil {
+	if h != (AltSignAddrData{}) {
 		t.Fatal("expected no data")
 	}
 
@@ -57,7 +57,7 @@ func testInsertAltSignAddr(t *testing.T) {
 	ticketHash := randString(64, hexCharset)
 
 	// Not added yet so no values should exist in the db.
-	ensureData(t, ticketHash, nil)
+	ensureData(t, ticketHash, AltSignAddrData{})
 
 	data := exampleAltSignAddrData()
 	// Clear alt sign addr for test.
@@ -67,12 +67,12 @@ func testInsertAltSignAddr(t *testing.T) {
 		t.Fatalf("expected error for insert blank address")
 	}
 
-	if err := db.InsertAltSignAddr(ticketHash, nil); err == nil {
+	if err := db.InsertAltSignAddr(ticketHash, AltSignAddrData{}); err == nil {
 		t.Fatalf("expected error for nil data")
 	}
 
 	// Still no change on errors.
-	ensureData(t, ticketHash, nil)
+	ensureData(t, ticketHash, AltSignAddrData{})
 
 	// Re-add alt sig addr.
 	data.AltSignAddr = randString(35, addrCharset)
@@ -114,5 +114,5 @@ func testDeleteAltSignAddr(t *testing.T) {
 		t.Fatalf("unexpected error deleting alt sign addr: %v", err)
 	}
 
-	ensureData(t, ticketHash, nil)
+	ensureData(t, ticketHash, AltSignAddrData{})
 }

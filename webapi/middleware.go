@@ -13,6 +13,7 @@ import (
 
 	"github.com/decred/dcrd/blockchain/stake/v4"
 	"github.com/decred/dcrd/chaincfg/chainhash"
+	"github.com/decred/vspd/database"
 	"github.com/decred/vspd/rpc"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -369,7 +370,7 @@ func vspAuth() gin.HandlerFunc {
 
 			// If we have no alternate sign address, or if validating with the
 			// alt sign addr fails, return an error to the client.
-			if altSigData == nil || validateSignature(reqBytes, altSigData.AltSignAddr, c) != nil {
+			if altSigData == (database.AltSignAddrData{}) || validateSignature(reqBytes, altSigData.AltSignAddr, c) != nil {
 				log.Warnf("%s: Bad signature (clientIP=%s, ticketHash=%s)", funcName, c.ClientIP(), hash)
 				sendError(errBadSignature, c)
 				return

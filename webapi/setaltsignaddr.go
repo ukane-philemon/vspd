@@ -60,7 +60,7 @@ func setAltSignAddr(c *gin.Context) {
 		sendError(errInternalError, c)
 		return
 	}
-	if currentData != nil {
+	if currentData != (database.AltSignAddrData{}) {
 		msg := "alternate sign address data already exists"
 		log.Warnf("%s: %s (ticketHash=%s)", funcName, msg, ticketHash)
 		sendErrorWithMsg(msg, errBadRequest, c)
@@ -109,11 +109,11 @@ func setAltSignAddr(c *gin.Context) {
 		Request:   reqBytes,
 	}, c)
 
-	data := &database.AltSignAddrData{
+	data := database.AltSignAddrData{
 		AltSignAddr: altSignAddr,
-		Req:         reqBytes,
+		Req:         string(reqBytes),
 		ReqSig:      c.GetHeader("VSP-Client-Signature"),
-		Resp:        []byte(resp),
+		Resp:        resp,
 		RespSig:     respSig,
 	}
 

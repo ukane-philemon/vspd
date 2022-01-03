@@ -26,13 +26,13 @@ type AltSignAddrData struct {
 	// AltSignAddr is the new alternate signing address. It is base 58 encoded.
 	AltSignAddr string
 	// Req is the original request to set an alternate signing address.
-	Req []byte
+	Req string
 	// ReqSig is the request's signature signed by the commitment address of the
 	// corresponding ticket. It is base 64 encoded.
 	ReqSig string
 	// Resp is the original response from the server to the alternate signing
 	// address.
-	Resp []byte
+	Resp string
 	// RespSig is the response's signature signed by the server. It is base 64
 	// encoded.
 	RespSig string
@@ -42,13 +42,13 @@ type AltSignAddrData struct {
 // database. Returns an error if data for the ticket hash already exist.
 //
 // Passed data must have no empty fields.
-func (vdb *VspDatabase) InsertAltSignAddr(ticketHash string, data *AltSignAddrData) error {
-	if data == nil {
+func (vdb *VspDatabase) InsertAltSignAddr(ticketHash string, data AltSignAddrData) error {
+	if data == (AltSignAddrData{}) {
 		return errors.New("alt sign addr data must not be nil for inserts")
 	}
 
-	if data.AltSignAddr == "" || len(data.Req) == 0 || data.ReqSig == "" ||
-		len(data.Resp) == 0 || data.RespSig == "" {
+	if data.AltSignAddr == "" || data.Req == "" || data.ReqSig == "" ||
+		data.Resp == "" || data.RespSig == "" {
 		return errors.New("alt sign addr data has empty parameters")
 	}
 
@@ -66,7 +66,7 @@ func (vdb *VspDatabase) InsertAltSignAddr(ticketHash string, data *AltSignAddrDa
 			return err
 		}
 
-		if err := bkt.Put(reqK, data.Req); err != nil {
+		if err := bkt.Put(reqK, []byte(data.Req)); err != nil {
 			return err
 		}
 
@@ -74,7 +74,7 @@ func (vdb *VspDatabase) InsertAltSignAddr(ticketHash string, data *AltSignAddrDa
 			return err
 		}
 
-		if err := bkt.Put(respK, data.Resp); err != nil {
+		if err := bkt.Put(respK, []byte(data.Resp)); err != nil {
 			return err
 		}
 		return bkt.Put(respSigK, []byte(data.RespSig))
@@ -104,20 +104,19 @@ func (vdb *VspDatabase) DeleteAltSignAddr(ticketHash string) error {
 
 // AltSignAddrData retrieves a ticket's alternate signing data. Existence of an
 // alternate signing address can be inferred by no error and nil data return.
-func (vdb *VspDatabase) AltSignAddrData(ticketHash string) (*AltSignAddrData, error) {
-	var h *AltSignAddrData
+func (vdb *VspDatabase) AltSignAddrData(ticketHash string) (AltSignAddrData, error) {
+	var h AltSignAddrData
 	return h, vdb.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(vspBktK).Bucket(altSignAddrBktK).Bucket([]byte(ticketHash))
 		if bkt == nil {
 			return nil
 		}
-		h = &AltSignAddrData{
-			AltSignAddr: string(bkt.Get(altSignAddrK)),
-			Req:         bkt.Get(reqK),
-			ReqSig:      string(bkt.Get(reqSigK)),
-			Resp:        bkt.Get(respK),
-			RespSig:     string(bkt.Get(respSigK)),
-		}
+		h.AltSignAddr = string(bkt.Get(altSignAddrK))
+		h.Req = string(bkt.Get(reqK))
+		h.ReqSig = string(bkt.Get(reqSigK))
+		h.Resp = string(bkt.Get(respK))
+		h.RespSig = string(bkt.Get(respSigK))
+
 		return nil
 	})
 }
